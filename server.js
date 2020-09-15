@@ -24,6 +24,7 @@ app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
 
+app.use('*', errorHandler);
 // app.use('*', notFoundHandler);
 
 //helper function
@@ -55,6 +56,11 @@ function handleWeather(request, response) {
     response.status(500).send('So sorry, something went wrong.');
   }
 }
+
+function errorHandler(request, response) {
+  response.status(404).send('STATUS:500 Error, wrong path');
+}
+
 
 function Location(city, geoData) {
   this.search_query = city;
