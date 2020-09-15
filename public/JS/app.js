@@ -58,9 +58,9 @@ function getRestaurants(location) {
 
   $.ajax(`${API}/location`, ajaxSettings)
     .then(result => {
-      let $container = $('#restaurants');
-      let $list = $('#restaurant-results');
-      let template = $('#restaurant-results-template').html();
+      let $container = $('#location');
+      let $list = $('#location-results');
+      let template = $('#location-results-template').html();
       let markup = Mustache.render(template, result);
       $list.append(markup);
       console.log(result);
