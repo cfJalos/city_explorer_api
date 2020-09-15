@@ -11,11 +11,6 @@
     <span>All About {{formatted_query}}</span>
   </script>
 
-  <!-- Template for map -->
-  <script type="text/x-tmpl-mustache" id="image-template">
-    <img src="/images/map.png?lat={{latitude}}&long={{longitude}}" height="300" width="400" alt="Map of {{formatted_query}}" />
-  </script>
-
   <!-- Template for restaurant data -->
   <script type="text/x-tmpl-mustache" id="restaurant-results-template">
     <li>
@@ -25,7 +20,14 @@
       <div>longitude:{{longitude}}</div>
     </li>
   </script>
-
+  
+  <!-- Template for weather -->
+  <script type="text/x-tmpl-mustache" id="weather-template">
+    <li>
+      <div>date: {{time}}</div>
+      <div>forecast: {{forecast}}</div>
+    </li>
+  </script>
 </head>
 
 <body>
@@ -49,10 +51,15 @@
 
     <section class="columns">
 
-      <!-- Section for restaurant data -->
+      <!-- Section for city data -->
       <section id="restaurants" class="hide">
         <h3>City</h3>
         <ul id="restaurant-results"></ul>
+      </section>
+
+      <section id="weather" class="hide">
+        <h3>Weather</h3>
+        <ul id="weather-results"></ul>
       </section>
 
     </section>
