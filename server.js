@@ -19,3 +19,35 @@ app.use(express.static('./public'));
 
 app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
+
+// API Routes
+app.get('/location', handleLocation);
+// app.get('/restaurants', handleRestaurants);
+
+// app.use('*', notFoundHandler);
+
+//helper function
+
+function handleLocation (request, response) {
+  try {
+    const locData = require('./data/location.json');
+    const city = request.query.city;
+    const locationData = new Location(city, locData);
+    response.send(locationData);
+  } catch (error){
+    console.log('ERROR', error);
+    response.status(500).send('So sorry, something went wrong.');
+  }
+}
+
+function Location(city, geoData) {
+  this.search_query = city;
+  this.formatted_query = geoData[0].display_name;
+  this.latitude = geoData[0].lat;
+  this.longitude = geoData[0].lon;
+}
+
+function Weather(entry) {
+
+  
+}
