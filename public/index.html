@@ -19,9 +19,10 @@
   <!-- Template for restaurant data -->
   <script type="text/x-tmpl-mustache" id="restaurant-results-template">
     <li>
-      <div>{{restaurant}}</div>
-      <div>{{locality}}</div>
-      <div>{{cuisines}}</div>
+      <div>{{search_query.search_query}}</div>
+      <div>{{formatted_query}}</div>
+      <div>latitude:{{latitude}}</div>
+      <div>longitude:{{longitude}}</div>
     </li>
   </script>
 
@@ -50,7 +51,7 @@
 
       <!-- Section for restaurant data -->
       <section id="restaurants" class="hide">
-        <h3>Retaurants</h3>
+        <h3>City</h3>
         <ul id="restaurant-results"></ul>
       </section>
 
@@ -62,7 +63,7 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://unpkg.com/mustache@latest"></script>
-  <script src="/scripts/app.js"></script>
+  <script src="./JS/app.js"></script>
 </body>
 
 </html>
