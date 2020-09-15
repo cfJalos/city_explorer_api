@@ -22,7 +22,7 @@ app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
 // API Routes
 app.get('/location', handleLocation);
-// app.get('/restaurants', handleRestaurants);
+app.get('/weather', handleWeather);
 
 // app.use('*', notFoundHandler);
 
@@ -40,6 +40,22 @@ function handleLocation (request, response) {
   }
 }
 
+
+function handleWeather(request, response) {
+  try {
+    const data = require('./data/weather.json');
+    const weatherData = [];
+    data.data.forEach(entry => {
+      weatherData.push(new Weather(entry));
+    });
+    response.send(weatherData);
+  }
+  catch (error) {
+    console.log('ERROR', error);
+    response.status(500).send('So sorry, something went wrong.');
+  }
+}
+
 function Location(city, geoData) {
   this.search_query = city;
   this.formatted_query = geoData[0].display_name;
@@ -48,6 +64,6 @@ function Location(city, geoData) {
 }
 
 function Weather(entry) {
-
-  
+  this.forecast = entry.weather.description;
+  this.time = entry.valid_date;
 }
