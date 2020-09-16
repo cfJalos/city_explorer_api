@@ -16,7 +16,7 @@ app.use(cors());
 
 app.use(express.static('./public'));
 
-//server listener for request
+//server listener for request/start server
 
 app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
@@ -66,8 +66,8 @@ function handleWeather(request, response) {
 
 
 function handleTrails(request, response){
-  let lat = request.query.lat;
-  let lon = request.query.lon;
+  let lat = request.query.latitude;
+  let lon = request.query.longitude;
   let key = process.env.HIKING_API_KEY;
   let url = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
 
