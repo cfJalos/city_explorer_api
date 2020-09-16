@@ -5,6 +5,7 @@ require('dotenv').config();
 //application dependencies
 const express = require('express'); //PULL IN PACKAGE FROM NPM
 const cors = require('cors');
+const superagent = require('superagent');
 
 //application setup
 const PORT = process.env.PORT
@@ -30,15 +31,28 @@ app.use('*', errorHandler);
 //helper function
 
 function handleLocation (request, response) {
-  try {
-    const locData = require('./data/location.json');
-    const city = request.query.city;
-    const locationData = new Location(city, locData);
-    response.send(locationData);
-  } catch (error){
-    console.log('ERROR', error);
-    response.status(500).send('So sorry, something went wrong.');
-  }
+  // try {
+  //   const locData = require('./data/location.json');
+  //   const city = request.query.city;
+  //   const locationData = new Location(city, locData);
+  //   response.send(locationData);
+  // } catch (error){
+  //   console.log('ERROR', error);
+  //   response.status(500).send('So sorry, something went wrong.');
+  // }
+  let city = request.query.city;
+  let key = process.env.GEOCODE_API_KEY;
+  let url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+
+
+  superagent.get(url)
+    .then(data => {
+      const locData = JSON.parse(data.text)
+      const locArr = new Location(city, locData);
+      // console.log(locArr);
+      response.send(locArr);
+    })
+    .catch(() => response.status(500).send('So sorry, something went wrong.'));
 }
 
 
