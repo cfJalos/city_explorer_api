@@ -25,13 +25,11 @@ function fetchCityData(event) {
   $.ajax(`${API}/location`, ajaxSettings)
     .then(location => {
       getRestaurants(location);
-      // getWeather(location);
+      getWeather(location);
     })
     .catch(error => {
       console.error(error);
     });
-
-    
 }
 
 // function displayMap(location) {
@@ -61,10 +59,9 @@ function getRestaurants(location) {
       let $container = $('#restaurants');
       let $list = $('#restaurant-results');
       let template = $('#restaurant-results-template').html();
-      let city = result.search_query
-      let markup = Mustache.render(template, city);
+      let location = result.search_query
+      let markup = Mustache.render(template, location);
       $list.append(markup);
-      console.log(result);
       $container.show();
     })
     .catch(error => {
@@ -79,9 +76,9 @@ function getWeather(location) {
     dataType: 'json',
     data: { city: location }
   };
-
   $.ajax(`${API}/weather`, ajaxSettings)
     .then(result => {
+      console.log(result);
       let $container = $('#weather');
       let $list = $('#weather-results');
       let template = $('#weather-template').html();
