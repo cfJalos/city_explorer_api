@@ -25,7 +25,7 @@ function fetchCityData(event) {
   $.ajax(`${API}/location`, ajaxSettings)
     .then(location => {
       getRestaurants(location);
-      getWeather(location);
+      // getWeather(location);
     })
     .catch(error => {
       console.error(error);
@@ -61,7 +61,8 @@ function getRestaurants(location) {
       let $container = $('#restaurants');
       let $list = $('#restaurant-results');
       let template = $('#restaurant-results-template').html();
-      let markup = Mustache.render(template, result);
+      let city = result.search_query
+      let markup = Mustache.render(template, city);
       $list.append(markup);
       console.log(result);
       $container.show();
