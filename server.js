@@ -26,20 +26,11 @@ app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
 
 app.use('*', errorHandler);
-// app.use('*', notFoundHandler);
+
 
 //helper function
 
 function handleLocation (request, response) {
-  // try {
-  //   const locData = require('./data/location.json');
-  //   const city = request.query.city;
-  //   const locationData = new Location(city, locData);
-  //   response.send(locationData);
-  // } catch (error){
-  //   console.log('ERROR', error);
-  //   response.status(500).send('So sorry, something went wrong.');
-  // }
   let city = request.query.city;
   let key = process.env.GEOCODE_API_KEY;
   let url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
@@ -57,15 +48,19 @@ function handleLocation (request, response) {
 
 
 function handleWeather(request, response) {
-  try {
-    const data = require('./data/weather.json');
-    const weatherData = data.data.map(entry => new Weather(entry));
-    response.send(weatherData);
-  }
-  catch (error) {
-    console.log('ERROR', error);
-    response.status(500).send('So sorry, something went wrong.');
-  }
+  let key = process.env.WEATHER_API_KEY;
+  let city = request.query.search_query;
+  let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&country=us&days=8&key=${key}`;
+
+
+  superagent.get(url)
+    .then(data => {
+      console.log(data.body.data);
+      const weatherArr = data.body.data
+      const weatherConst = weatherArr.map(entry => new Weather(entry));
+      response.send(weatherConst);
+    })
+    .catch(() => response.status(500).send('So sorry, something went wrong.'));
 }
 
 function errorHandler(request, response) {
