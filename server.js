@@ -45,10 +45,7 @@ function handleLocation (request, response) {
 function handleWeather(request, response) {
   try {
     const data = require('./data/weather.json');
-    const weatherData = [];
-    data.data.forEach(entry => {
-      weatherData.push(new Weather(entry));
-    });
+    const weatherData = data.data.map(entry => new Weather(entry));
     response.send(weatherData);
   }
   catch (error) {
