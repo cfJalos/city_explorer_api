@@ -24,6 +24,7 @@ app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 // API Routes
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
+app.get('/trails', handleTrails);
 
 app.use('*', errorHandler);
 
@@ -63,10 +64,25 @@ function handleWeather(request, response) {
     .catch(() => response.status(500).send('So sorry, something went wrong.'));
 }
 
+
+function handleTrails(request, response){
+  let lat = request.query.lat;
+  let lon = request.query.lon;
+  let key = process.env.HIKING_API_KEY;
+  let url = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=10&key=${key}`;
+
+  superagent.get(url)
+    .then(hike => {
+      const hikingData = hike.body.trails;
+      const trailData = hikingData.map(active => new Hiking(active));
+      response.send(trailData);
+    })
+    .catch(() => response.status(500).send('So sorry, something went wrong.'));
+}
+
 function errorHandler(request, response) {
   response.status(404).send('STATUS:500 Error, wrong path');
 }
-
 
 function Location(city, geoData) {
   this.search_query = city;
@@ -78,4 +94,17 @@ function Location(city, geoData) {
 function Weather(entry) {
   this.forecast = entry.weather.description;
   this.time = entry.valid_date;
+}
+
+function Hiking(active) {
+  this.name = active.name
+  this.location = active.location
+  this.length = active.length
+  this.stars = active.stars
+  this.star_votes = active.starVotes
+  this.summary = active.summary
+  this.trail_url = active.url
+  this.conditions = active.conditionDetails
+  this.condition_date = active.conditionDate.slice(0,9);
+  this.condition_time = active.conditionDate.slice(11,19);
 }
