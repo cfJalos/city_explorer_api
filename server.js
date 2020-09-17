@@ -7,18 +7,26 @@ const express = require('express'); //PULL IN PACKAGE FROM NPM
 const cors = require('cors');
 const superagent = require('superagent');
 
+// Bring in the postgres client library so we can connect to db
+const pg = require('pg');
+
 //application setup
 const PORT = process.env.PORT
 const app = express();
 
+
+// Initialize Postgres
+// Need to tell pg.Client where our DB is
+const client = new pg.Client(process.env.DATABASE_URL);
+// client.on('error', err => console.error(err));
+
+// Incorporate "cors" to allow access to the server
 app.use(cors());
 
 
 app.use(express.static('./public'));
 
 //server listener for request/start server
-
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`));
 
 
 // API Routes
@@ -32,21 +40,48 @@ app.use('*', errorHandler);
 //helper function
 
 function handleLocation (request, response) {
-  let city = request.query.city;
-  let key = process.env.GEOCODE_API_KEY;
-  let url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
+  let city = request.query.city
+  const SQL = `SELECT * FROM location WHERE search_query=$1;`;
+  let safeValues = [city]
+  client.query(SQL, safeValues)
+    .then(results => {
+      if (results.rows.length > 0) {
+        console.log('getting city from memory', request.query.city)
+        response.status(200).json(results.rows[0]);
+      }
+      else {
+        let url = `https://us1.locationiq.com/v1/search.php`;
 
-  superagent.get(url)
-    .then(data => {
-      const locData = JSON.parse(data.text)
-      const locArr = new Location(city, locData);
-      // console.log(locArr);
-      response.send(locArr);
+        let queryObject = {
+          key: process.env.GEOCODE_API_KEY,
+          city: request.query.city,
+          format: 'json',
+          limit: 1
+        };
+
+        superagent.get(url).query(queryObject)
+          .then(APIresult => {
+            const data = APIresult.body[0];
+            const location = new Location(city, data)
+            const queryString = ('INSERT INTO location (search_query, formatted_query, latitude, longitude) VALUES ($1,$2,$3,$4)');
+            const safeValues = [city, location.formatted_query, location.latitude, location.longitude];
+            console.log(safeValues);
+            client.query(queryString, safeValues)
+              // eslint-disable-next-line no-unused-vars
+              .then(insertedData => response.send(location))
+              .catch(error => {
+                console.log(error);
+                response.status(500).send(error.message);
+              })
+              .catch(error => {
+                console.log(error);
+                response.status(500).send(error.message);
+              });
+          })
+      }
     })
-    .catch(() => response.status(500).send('So sorry, something went wrong.'));
 }
-
 
 function handleWeather(request, response) {
   let key = process.env.WEATHER_API_KEY;
@@ -86,9 +121,9 @@ function errorHandler(request, response) {
 
 function Location(city, geoData) {
   this.search_query = city;
-  this.formatted_query = geoData[0].display_name;
-  this.latitude = geoData[0].lat;
-  this.longitude = geoData[0].lon;
+  this.formatted_query = geoData.display_name;
+  this.latitude = geoData.lat;
+  this.longitude = geoData.lon;
 }
 
 function Weather(entry) {
@@ -108,3 +143,13 @@ function Hiking(active) {
   this.condition_date = active.conditionDate.slice(0,9);
   this.condition_time = active.conditionDate.slice(11,19);
 }
+
+function startServer() {
+  app.listen(PORT, () => {
+    console.log('Server is listening on port', PORT);
+  });
+}
+
+client.connect()
+  .then(startServer)
+  .catch(e => console.log(e));
