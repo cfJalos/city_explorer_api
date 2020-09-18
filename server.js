@@ -84,21 +84,40 @@ function handleLocation (request, response) {
 }
 
 function handleWeather(request, response) {
-  let key = process.env.WEATHER_API_KEY;
   let city = request.query.search_query;
-  let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&country=us&days=8&key=${key}`;
+  const SQLDATE = `SELECT * FROM weather WHERE city=$1;`;
+  let safeValues = [city]
+  client.query(SQLDATE,safeValues)
+    .then(result => {
+      if (result.rows.length > 0) {
+        const SQL = `DELETE FROM weather WHERE time_stamp < now() - interval '1 day';`;
+        client.query(SQL);
+        console.log('getting city from memory');
+        response.status(200).json(result.rows);
+      }
+      else {
+        // let city = request.query.city
+        let key = process.env.WEATHER_API_KEY;
+        let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&country=us&days=8&key=${key}`;
 
 
-  superagent.get(url)
-    .then(data => {
-      console.log(data.body.data);
-      const weatherArr = data.body.data
-      const weatherConst = weatherArr.map(entry => new Weather(entry));
-      response.send(weatherConst);
+        superagent.get(url)
+          .then(data => {
+            const weather = data.body.data.map(entry => new Weather(entry));
+            console.log(weather);
+            weather.forEach(data => {
+              const queryString = ('INSERT INTO weather (forecast, time, city) VALUES ($1,$2,$3)');
+
+              const safeValues = [data.forecast, data.time, city]
+              client.query(queryString, safeValues)
+                .catch(err => {throw new Error(err.message)});
+            })
+            response.send(weather)
+          })
+          .catch(() => response.status(500).send('So sorry, something went wrong.'));
+      }
     })
-    .catch(() => response.status(500).send('So sorry, something went wrong.'));
 }
-
 
 function handleTrails(request, response){
   let lat = request.query.latitude;
@@ -128,7 +147,8 @@ function Location(city, geoData) {
 
 function Weather(entry) {
   this.forecast = entry.weather.description;
-  this.time = entry.valid_date;
+  let timeFormat = entry.valid_date;
+  this.time = new Date(timeFormat).toDateString();
 }
 
 function Hiking(active) {
